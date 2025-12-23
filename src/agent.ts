@@ -2,6 +2,7 @@ import OpenAI from "openai";
 import { randomUUID } from "crypto";
 import type { AgentState } from "./types";
 import { fetchRepoContext } from "./github";
+import { tools, executeTool } from "./tools";
 
 const client = new OpenAI({
   baseURL: "https://ai-gateway.helicone.ai",
@@ -40,29 +41,50 @@ async function executeStep(
       return { ...state, repoContext: context, step: "action" };
 
     case "action":
+      // Ask LLM which tool to use
       const response = await client.chat.completions.create({
-        model: "gpt-4o-mini",
+        model: "gpt-4o",
         messages: [
           {
             role: "user",
-            content: `Repository: ${state.repoOwner}/${state.repoName}
-            Recent commits: ${state.repoContext?.recentCommits.join(", ")}
+            content: `Create ${state.contentType} for ${state.repoOwner}/${state.repoName}.
 
-            What content type makes sense? Reply with ONE word: changelog, feature, or use-case`,
+Commits: ${state.repoContext?.recentCommits.join(", ")}
+README: ${state.repoContext?.readme.slice(0, 200)}
+
+Use the right tool.`,
           },
-        ]},
-        {
-          headers: {
-            "Helicone-Session-Id": sessionId,
-            "Helicone-Property-Repository": `${state.repoOwner}/${state.repoName}`,
-          },
-        }
+        ],
+        tools,
+        tool_choice: "required",
+      });
+
+      const toolCall = response.choices[0]?.message.tool_calls?.[0];
+      if (!toolCall || toolCall.type !== 'function') throw new Error("No tool called");
+
+      // Execute the tool
+      console.log(`Tool: ${toolCall.function.name}`);
+      const result = await executeTool(
+        toolCall.function.name,
+        JSON.parse(toolCall.function.arguments)
       );
 
-      const contentType = response.choices[0]?.message.content
-        ?.trim()
-        .toLowerCase() as any;
-      return { ...state, contentType, step: "observation" };
+      // Get final draft
+      const final = await client.chat.completions.create({
+        model: "gpt-4o",
+        messages: [
+          { role: "user", content: `Create ${state.contentType} content` },
+          response.choices[0]!.message,
+          { role: "tool", tool_call_id: toolCall.id, content: result },
+          { role: "user", content: "Make it tweet-length (280 chars)" },
+        ],
+      });
+
+      return {
+        ...state,
+        draft: final.choices[0]!.message.content,
+        step: "done",
+      };
 
     case "observation":
       const draft = `[${state.contentType?.toUpperCase()}]
