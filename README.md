@@ -1,16 +1,57 @@
 # How to Build an AI Agent
 
-Over the next 7 days, we'll build a hybrid agent and workflow system that analyzes GitHub repositories and generates marketing content. System reads repos (code, commits, README), decides content type, generates drafts, and emails weekly ideas.
+Welcome to the 7-day AI agent building workshop! This repository contains everything you need to build a production-ready marketing agent from scratch.
 
-## Day 1: Setup & First LLM Request
+## What We're Building
 
-Learn agents vs workflows, set up TypeScript + OpenAI, make your first LLM request through an AI Gateway, and get automatic observability.
+By the end of this course, you'll have built a **hybrid agent and workflow system** that:
+- Analyzes GitHub repositories (code, commits, README files)
+- Intelligently decides what type of marketing content to create
+- Generates high-quality drafts
+- Runs on a schedule to email weekly content ideas
 
-## Agents vs Workflows
 
-Most "agents" today aren't agents at all. they're workflows that call an LLM.
+## How to Use This Repository
 
-**Workflows**: Predetermined paths. You define steps, LLM fills blanks.
+### Follow These Steps:
+
+1. **Switch to your day's branch**
+   ```bash
+   git checkout day-1  # Or day-2, day-3, etc.
+   ```
+
+2. **Open the tutorial for your day**
+   ```bash
+   # Navigate to TUTORIALS/ folder and open your day's file
+   # For example: TUTORIALS/day-1.md
+   ```
+
+3. **Follow the tutorial**
+   Each day contains code that is self-contained, meaning you can run the code and see the results of the day.
+
+   Each day's tutorial contains:
+   - Concepts you'll learn
+   - Step-by-step code examples
+   - Troubleshooting tips
+   - Working code in the branch
+
+### Course Structure
+
+- **Day 1**: Setup & First LLM Request
+- **Day 2**: Building the Agent Loop
+- **Day 3**: Tool Calling & Actions
+- **Day 4**: Memory & Context Management
+- **Day 5**: Error Handling & Retry Logic
+- **Day 6**: Monitoring & Observability
+- **Day 7**: Production Deployment
+
+## What We're Building
+
+### Understanding Agents vs Workflows
+
+Most "agents" today aren't agents at all. Instead, they're workflows that call an LLM. Understanding the difference between agents and workflows is key to building reliable AI systems.
+
+**Workflows** follow predetermined paths. You define the steps, the LLM fills in the blanks:
 ```
 Input → Step 1 → Step 2 → Step 3 → Output
 
@@ -18,7 +59,7 @@ Input → Step 1 → Step 2 → Step 3 → Output
 ❌ Rigid            ❌ Limited scope      ❌ Manual updates
 ```
 
-**Agents**: Dynamic decisions. LLM chooses next action based on context.
+**Agents** make dynamic decisions. The LLM chooses the next action based on context:
 ```
 Input → Think → Act → Observe → Think → Act → ... → Output
 
@@ -33,9 +74,9 @@ Input → Think → Act → Observe → Think → Act → ... → Output
 | You're optimizing for cost | Self-correction is key |
 | You can enumerate all paths | You can't predict all edge cases |
 
-### Hybrid Architecture
+### Our Hybrid Architecture
 
-For our marketing agent, we'll build what's known as a **hybrid approach** :
+This course teaches you to build a **hybrid approach**:
 - **Workflows** for predictable tasks (fetching GitHub data, posting content)
 - **Agent loops** for creative decisions (what to write about, how to frame it)
 
@@ -53,99 +94,108 @@ For our marketing agent, we'll build what's known as a **hybrid approach** :
 └──────────────────────────────────────────────────────────────┘
 ```
 
-## Get Started
-
-### 1. Setup
+## Quick Start
 
 **Prerequisites**: Node.js 18+
 
-**Install:**
-```bash
-mkdir marketing-agent && cd marketing-agent
-npm init -y
-npm install openai dotenv
-npm install -D typescript @types/node tsx
-npx tsc --init
-```
+### Setup
 
-**Configure `package.json`** - Add ES6 modules:
-```json
-{
-  "name": "marketing-agent",
-  "type": "module",
-  // ...
-}
-```
+1. **Clone and checkout Day 1**
+   ```bash
+   git clone <this-repo-url>
+   cd marketing-agent
+   git checkout day-1
+   ```
 
-**Create `.env`:**
-```bash
-HELICONE_API_KEY=your_key_here  # Get at https://us.helicone.ai/settings/api-key
-GITHUB_TOKEN=your_github_token  # Get at https://github.com/settings/tokens
-```
+2. **Install dependencies**
+   ```bash
+   npm install
+   ```
 
-### 2. Send an LLM Request
+3. **Configure environment variables**
+   ```bash
+   cp .env.example .env
+   # Then edit .env with your keys:
+   # - HELICONE_API_KEY from https://us.helicone.ai/settings/api-key
+   # - GITHUB_TOKEN from https://github.com/settings/tokens
+   ```
 
-Create `src/agent.ts`:
+4. **Open your tutorial**
+   ```bash
+   # Open TUTORIALS/day-1.md in your editor
+   ```
+5. **Start coding!**
 
-```typescript
-import OpenAI from "openai";
-import dotenv from "dotenv";
-dotenv.config();
+  Follow the tutorial for day 1 to get started.
 
-// 1. Set up the OpenAI client (but pointed at Helicone)
-const client = new OpenAI({
-  baseURL: "https://ai-gateway.helicone.ai",
-  apiKey: process.env.HELICONE_API_KEY
-});
 
-// 2. Create a function that analyzes a GitHub repo
-async function analyzeRepo(repoUrl: string) {
-  const response = await client.chat.completions.create({
-    model: "gpt-4o-mini", // Fast, cheap, good enough for testing
-    messages: [
-      {
-        role: "system",
-        content: "You are a marketing analyst, expert in developer marketing. You analyze Github repositories and suggest content ideas for going to market."
-      },
-      {
-        role: "user",
-        content: `What type of marketing content would be useful for the users of this product? Review this repository: ${repoUrl} in depth to find out.`
-      }
-    ]
-  });
 
-  return response.choices[0]?.message.content;
-}
+## What You'll Learn
 
-// 3. Test it with the Helicone repository
-analyzeRepo("https://github.com/helicone/helicone")
-  .then(result => console.log(result))
-  .catch(err => console.error(err));
-```
+### Day 1: Setup & First LLM Request
+- Agents vs workflows fundamentals
+- TypeScript project setup
+- First LLM request through Helicone gateway
+- Automatic observability
 
-### 3. Run it
+### Day 2: Building the Agent Loop
+- The core agent architecture (Think → Act → Observe)
+- GitHub API integration
+- Agent state management
+- Session tracking
 
-```bash
-npx tsx src/agent.ts
-```
+### Day 3: Tool Calling & Actions
+- OpenAI function calling
+- Tool definitions and execution
+- Dynamic tool selection
+- Content generation
 
-**View logs:** [https://us.helicone.ai/dashboard](https://us.helicone.ai/dashboard)
+### Day 4: Memory & Context Management
+- Conversation history
+- Context window management
+- Token optimization
+- State persistence
 
-## Project Structure (Days 1-7)
+### Day 5: Error Handling & Retry Logic
+- Graceful degradation
+- Exponential backoff
+- Rate limit handling
+- Fallback strategies
+
+### Day 6: Monitoring & Observability
+- Performance metrics
+- Cost tracking
+- Debugging with Helicone
+- Production monitoring
+
+### Day 7: Production Deployment
+- Vercel deployment
+- Cron scheduling
+- Environment configuration
+- Email integration
+
+## Final Project Structure
+
+By Day 7, your project will look like this:
 
 ```
 marketing-agent/
 ├── src/
 │   ├── index.ts           # Entry point
-│   ├── agent.ts           # Main agent loop (perceive → reason → act)
+│   ├── agent.ts           # Main agent loop (Think → Act → Observe)
 │   ├── types.ts           # AgentState interface
-│   ├── github.ts          # fetchRepoContext() - GitHub API
-│   ├── tools.ts           # Tool definitions + executeTool()
-│   ├── memory.ts          # Memory class - conversation history
-│   └── monitor.ts         # logRunMetrics() - performance tracking
+│   ├── github.ts          # GitHub API integration
+│   ├── tools.ts           # Tool definitions & execution
+│   ├── memory.ts          # Conversation history management
+│   └── monitor.ts         # Performance tracking
 │
 ├── api/
 │   └── cron.ts            # Vercel cron handler for weekly runs
+│
+├── TUTORIALS/
+│   ├── day-1.md           # Daily tutorials
+│   ├── day-2.md
+│   └── ...
 │
 ├── .env                   # Environment variables
 ├── vercel.json            # Cron schedule config
@@ -153,28 +203,65 @@ marketing-agent/
 └── tsconfig.json          # TypeScript config
 ```
 
-## Troubleshooting
+## Branch Navigation
+
+Each day has its own branch with working code:
+
+```bash
+git checkout day-1    # Start here
+git checkout day-2    # After completing day 1
+git checkout day-3    # And so on...
+git checkout day-7    # Final production version
+```
+
+The `main` branch contains this overview README. Always switch to the specific day branch and read that day's tutorial in `TUTORIALS/`.
+
+## Why This Approach?
+
+Building AI agents requires understanding multiple concepts that build on each other:
+
+1. **Foundation First**: You need to understand how LLMs work before building loops
+2. **Incremental Complexity**: Each day adds one major concept
+3. **Working Code**: Every branch has tested, runnable code
+4. **Learn by Doing**: Follow tutorials, run code, see results immediately
+
+By the end, you'll have built a complete agent system and understand every line of code.
+
+## Common Troubleshooting
+
+### Setup Issues
 
 **Missing API key error:**
 - Check `.env` is in project root (same folder as `package.json`)
 - Verify format: `HELICONE_API_KEY=sk-helicone-...`
-- Restart terminal
+- Restart your terminal after creating `.env`
 
 **Module not found error:**
-- Add `"type": "module"` to `package.json`
-- Or reinstall: `rm -rf node_modules package-lock.json && npm install`
+- Ensure `"type": "module"` is in `package.json`
+- Reinstall: `rm -rf node_modules package-lock.json && npm install`
+
+### API Issues
 
 **Request not in Helicone dashboard:**
 - Verify API key starts with `sk-helicone-`
 - Confirm `baseURL` is `https://ai-gateway.helicone.ai`
-- Wait 10-15 seconds, refresh dashboard
-- Check you're logged into correct account
+- Wait 10-15 seconds, then refresh dashboard
+- Check you're logged into the correct account
 
 **401 Unauthorized:**
-- Generate new API key at [https://us.helicone.ai/settings/api-key](https://us.helicone.ai/settings/api-key)
+- Generate a new API key at [https://us.helicone.ai/settings/api-key](https://us.helicone.ai/settings/api-key)
+- Make sure to add credits to your account to be able to make requests.
+
+**GitHub API rate limit:**
+- Authenticated requests get 5,000/hour
+- Check your rate limit: `curl -H "Authorization: token YOUR_TOKEN" https://api.github.com/rate_limit`
+
+### Need Help?
+
+Each day's tutorial (`TUTORIALS/day-X.md`) includes specific troubleshooting for that day's concepts. Check there first!
 
 ## Resources
 
-- [Helicone Documentation](https://docs.helicone.ai)
-- [OpenAI API Reference](https://platform.openai.com/docs)
-- [GitHub REST API](https://docs.github.com/en/rest)
+- [Helicone Documentation](https://docs.helicone.ai) - AI Gateway & Observability
+- [OpenAI API Reference](https://platform.openai.com/docs) - LLM API docs
+- [GitHub REST API](https://docs.github.com/en/rest) - Repository data access
