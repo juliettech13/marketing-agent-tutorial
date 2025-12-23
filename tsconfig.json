@@ -23,7 +23,7 @@
 
     // Stricter Typechecking Options
     "noUncheckedIndexedAccess": true,
-    "exactOptionalPropertyTypes": true,
+    // "exactOptionalPropertyTypes": true, // Disabled due to MCP SDK type incompatibility
 
     // Style Options
     // "noImplicitReturns": true,

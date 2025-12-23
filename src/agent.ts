@@ -46,57 +46,57 @@ async function executeStep(
       return { ...state, repoContext: context, step: "action" };
 
     case "action":
+      // Add user instruction with repo context
       memory.add("user", `Create ${state.contentType} content for ${state.repoOwner}/${state.repoName}.
-
       Recent commits: ${state.repoContext?.recentCommits.join(", ")}
       README excerpt: ${state.repoContext?.readme.slice(0, 200)}
       Primary language: ${state.repoContext?.language}
+      Use the appropriate tool to generate content, format it as compelling tweet-length content (280 characters max) for developers, then save it to Typefully.`);
 
-      Use the appropriate tool to generate this content.`);
-
-      // First LLM call - tool selection
-      const response = await client.chat.completions.create({
+      // Start the conversation
+      let response = await client.chat.completions.create({
         model: "gpt-4o",
-        messages: memory.getAll(), // Inject memory
-        tools,
-        tool_choice: "required"
+        messages: memory.getAll(),
+        tools
       });
 
-      const toolCall = response.choices[0]?.message.tool_calls?.[0];
-      if (!toolCall || toolCall.type !== "function") {
-        throw new Error("No tool was called");
+      // Tool calling loop - LLM will call tools until it's done
+      while (response.choices[0]?.message.tool_calls) {
+        const message = response.choices[0].message;
+        const toolCalls = message.tool_calls!;
+
+        // Save assistant's tool calls to memory
+        memory.add("assistant", message.content || "", { tool_calls: toolCalls });
+
+        // Execute each tool and add results to memory
+        for (const toolCall of toolCalls) {
+          if (toolCall.type !== "function") continue;
+
+          console.log(`→ Calling ${toolCall.function.name}`);
+          const result = await executeTool(
+            toolCall.function.name,
+            JSON.parse(toolCall.function.arguments)
+          );
+
+          memory.add("tool", result, {
+            tool_call_id: toolCall.id,
+            name: toolCall.function.name
+          });
+        }
+
+        // Continue the conversation
+        response = await client.chat.completions.create({
+          model: "gpt-4o",
+          messages: memory.getAll(),
+          tools
+        });
       }
 
-      console.log(`Tool called: ${toolCall.function.name}`);
-      console.log(`Arguments: ${toolCall.function.arguments}`);
-
-      // Add assistant's tool call to memory
-      memory.add("assistant", "", { tool_calls: [toolCall] });
-
-      // Execute the tool
-      const result = await executeTool(
-        toolCall.function.name,
-        JSON.parse(toolCall.function.arguments)
-      );
-
-      // Add tool result to memory
-      memory.add("tool", result, {
-        tool_call_id: toolCall.id,
-        name: toolCall.function.name
-      });
-
-      // Add instruction for final formatting
-      memory.add("user", "Based on the tool result, create engaging tweet-length content (280 characters max). Make it compelling for developers.");
-
-      // Second LLM call - final generation
-      const final = await client.chat.completions.create({
-        model: "gpt-4o",
-        messages: memory.getAll() // Use full conversation history
-      });
+      const draftContent = response.choices[0]?.message.content || null;
 
       return {
         ...state,
-        draft: final.choices[0]!.message.content,
+        draft: draftContent,
         step: "done"
       };
 
@@ -104,9 +104,7 @@ async function executeStep(
       const draft = `[${state.contentType?.toUpperCase()}]
 
       Repository: ${state.repoOwner}/${state.repoName}
-      Based on recent commits: ${state.repoContext?.recentCommits[0]}
-
-      (Full generation coming Day 3 with tools)`;
+      Based on recent commits: ${state.repoContext?.recentCommits[0]}`;
 
       return { ...state, draft, step: "done" };
 
