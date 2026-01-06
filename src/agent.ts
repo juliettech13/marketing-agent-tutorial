@@ -8,6 +8,11 @@ import { Memory } from "./memory";
 const client = new OpenAI({
   baseURL: "https://ai-gateway.helicone.ai",
   apiKey: process.env.HELICONE_API_KEY,
+  defaultHeaders: {
+    "Helicone-Session-Id": randomUUID(), // Already have this variable
+    "Helicone-Property-Repository": process.env.TARGET_REPO || "helicone/helicone", // Add this
+    "Helicone-Property-Environment": process.env.NODE_ENV || "development"
+  },
 });
 
 export async function runAgent(repoFullName: string) {
