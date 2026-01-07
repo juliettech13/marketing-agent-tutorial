@@ -62,7 +62,7 @@ For our marketing agent, we'll build what's known as a **hybrid approach** :
 mkdir marketing-agent && cd marketing-agent
 npm init -y
 npm install openai dotenv
-npm install -D typescript @types/node tsx
+npm install -D typescript @types/node tsx dotenv
 npx tsc --init
 ```
 
@@ -98,7 +98,7 @@ const client = new OpenAI({
 // 2. Create a function that analyzes a GitHub repo
 async function analyzeRepo(repoUrl: string) {
   const response = await client.chat.completions.create({
-    model: "gpt-4o-mini", // Fast, cheap, good enough for testing
+    model: "gemma-3-12b-it", // Fast, cheap, good enough for testing
     messages: [
       {
         role: "system",
@@ -114,7 +114,7 @@ async function analyzeRepo(repoUrl: string) {
   return response.choices[0]?.message.content;
 }
 
-// 3. Test it with the Helicone repository or add your own!
+// 3. Test it with the Helicone repository or add your own repo URL!
 analyzeRepo("https://github.com/helicone/helicone")
   .then(result => console.log(result))
   .catch(err => console.error(err));
