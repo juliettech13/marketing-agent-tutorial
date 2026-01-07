@@ -64,7 +64,7 @@ For our marketing agent, we'll build what's known as a **hybrid approach** :
 mkdir marketing-agent && cd marketing-agent
 npm init -y
 npm install openai dotenv
-npm install -D typescript @types/node tsx
+npm install -D typescript @types/node tsx dotenv
 npx tsc --init
 ```
 
@@ -80,7 +80,6 @@ npx tsc --init
 **Create `.env`:**
 ```bash
 HELICONE_API_KEY=your_key_here  # Get at https://us.helicone.ai/settings/api-key
-GITHUB_TOKEN=your_github_token  # Get at https://github.com/settings/tokens
 ```
 
 ### 2. Send an LLM Request

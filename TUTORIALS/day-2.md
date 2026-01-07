@@ -66,8 +66,8 @@ npm install @octokit/rest
 Update your `.env`:
 
 ```bash
-HELICONE_API_KEY=your_key_here
-GITHUB_TOKEN=your_github_token
+HELICONE_API_KEY=your_key_here # Get at https://us.helicone.ai/settings/api-key
+GITHUB_TOKEN=your_github_token # Get at https://github.com/settings/tokens
 TARGET_REPO=helicone/helicone  # Format: owner/repo
 ```
 
@@ -119,7 +119,7 @@ This function fetches repository context in parallel: README, recent commits, an
 
 ## Step 3: Build the Agent Loop
 
-Replace the contents of `src/agent.ts` with:
+Create an `src/agent.ts` file with the following content:
 
 ```typescript
 import OpenAI from "openai";
@@ -215,7 +215,7 @@ async function executeStep(
 
 ## Step 4: Create Entry Point
 
-Create `src/index.ts`:
+Replace the contents of `src/index.ts` with the following content:
 
 ```typescript
 import "dotenv/config";
