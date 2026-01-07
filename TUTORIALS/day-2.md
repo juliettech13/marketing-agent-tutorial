@@ -119,7 +119,7 @@ This function fetches repository context in parallel: README, recent commits, an
 
 ## Step 3: Build the Agent Loop
 
-Replace the contents of `src/agent.ts` with:
+Create `src/agent.ts` file with the following content:
 
 ```typescript
 import OpenAI from "openai";
@@ -165,7 +165,7 @@ async function executeStep(
 
     case "action":
       const response = await client.chat.completions.create({
-        model: "gpt-4o-mini",
+        model: "gemma-3-12b-it",
         messages: [
           {
             role: "user",
@@ -215,7 +215,7 @@ async function executeStep(
 
 ## Step 4: Create Entry Point
 
-Create `src/index.ts`:
+Replace the contents of `src/index.ts` with the following content:
 
 ```typescript
 import "dotenv/config";

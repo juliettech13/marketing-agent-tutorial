@@ -64,7 +64,7 @@ For our marketing agent, we'll build what's known as a **hybrid approach** :
 mkdir marketing-agent && cd marketing-agent
 npm init -y
 npm install openai dotenv
-npm install -D typescript @types/node tsx
+npm install -D typescript @types/node tsx dotenv
 npx tsc --init
 ```
 
@@ -85,7 +85,7 @@ GITHUB_TOKEN=your_github_token  # Get at https://github.com/settings/tokens
 
 ### 2. Send an LLM Request
 
-Create `src/agent.ts`:
+Create `src/index.ts`:
 
 ```typescript
 import OpenAI from "openai";
@@ -101,7 +101,7 @@ const client = new OpenAI({
 // 2. Create a function that analyzes a GitHub repo
 async function analyzeRepo(repoUrl: string) {
   const response = await client.chat.completions.create({
-    model: "gpt-4o-mini", // Fast, cheap, good enough for testing
+    model: "gemma-3-12b-it", // Fast, cheap, good enough for testing
     messages: [
       {
         role: "system",
@@ -126,7 +126,7 @@ analyzeRepo("https://github.com/helicone/helicone")
 ### 3. Run it
 
 ```bash
-npx tsx src/agent.ts
+npx tsx src/index.ts
 ```
 
 **View logs:** [https://us.helicone.ai/dashboard](https://us.helicone.ai/dashboard)
@@ -137,7 +137,7 @@ npx tsx src/agent.ts
 marketing-agent/
 ├── src/
 │   ├── index.ts           # Entry point
-│   ├── agent.ts           # Main agent loop (perceive → reason → act)
+│   ├── agent.ts           # Main agent loop (think → act → observe)
 │   ├── types.ts           # AgentState interface
 │   ├── github.ts          # fetchRepoContext() - GitHub API
 │   ├── tools.ts           # Tool definitions + executeTool()

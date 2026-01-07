@@ -180,7 +180,7 @@ Now replace the entire `case "action":` block with this tool-calling version:
 case "action":
   // Ask LLM which tool to use
   const response = await client.chat.completions.create({
-    model: "gpt-4o",
+    model: "gemma-3-12b-it",
     messages: [
       {
         role: "system",
@@ -217,7 +217,7 @@ Use the appropriate tool to generate this content.`
 
   // Get final draft using the tool result
   const final = await client.chat.completions.create({
-    model: "gpt-4o",
+    model: "gemini-3-pro-preview", // Use expensive model for final generation
     messages: [
       {
         role: "system",
@@ -379,7 +379,7 @@ Add custom properties to track which tools are most used:
 
 ```typescript
 const response = await client.chat.completions.create({
-  model: "gpt-4o",
+  model: "gemma-3-12b-it",
   messages: [/* ... */],
   tools,
   headers: {
@@ -417,8 +417,8 @@ const response = await client.chat.completions.create({
 
 **High costs from tool calling:**
 - Tool calling requires multiple LLM calls (selection + generation)
-- Use cheaper models for tool selection: `gpt-4o-mini`
-- Use expensive models only for final generation: `gpt-4o`
+- Use cheaper models for tool selection: `gemma-3-12b-it`
+- Use expensive models only for final generation: `gemini-3-pro-preview`
 - Cache tool results when possible
 - Monitor token usage in Helicone dashboard
 
