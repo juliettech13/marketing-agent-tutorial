@@ -61,7 +61,7 @@ export const tools: ChatCompletionTool[] = [
   {
     type: "function",
     function: {
-      name: "create_typefully_draft",
+      name: "typefully_create_draft",
       description: "Save content as Typefully draft",
       parameters: {
         type: "object",
@@ -88,7 +88,7 @@ export async function executeTool(name: string, args: any) {
     return `## Use Case\n\n${args.description}\n\nBuilt with ${args.language}.`;
   }
 
-  if (name === "create_typefully_draft") {
+  if (name === "typefully_create_draft") {
     try {
       const mcp = await getTypefullyMCP();
 
@@ -100,7 +100,7 @@ export async function executeTool(name: string, args: any) {
 
       // Create draft with proper structure
       const result = await mcp.callTool({
-        name: "typefully_drafts_create_draft",
+        name: "typefully_create_draft",
         arguments: {
           social_set_id: socialSetId,
           requestBody: {

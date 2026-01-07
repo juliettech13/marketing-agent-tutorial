@@ -1,14 +1,12 @@
-# How to Build an AI Agent
+## Day 1: Setup & First LLM Request
 
 Over the next 7 days, we'll build a hybrid agent and workflow system that analyzes GitHub repositories and generates marketing content. System reads repos (code, commits, README), decides content type, generates drafts, and emails weekly ideas.
 
-## Day 1: Setup & First LLM Request
-
-Learn agents vs workflows, set up TypeScript + OpenAI, make your first LLM request through an AI Gateway, and get automatic observability.
+Today we will learn the difference between agents and workflows, set up TypeScript + OpenAI, make your first LLM request through an AI Gateway, and get automatic observability.
 
 ## Agents vs Workflows
 
-Most "agents" today aren't agents at all. they're workflows that call an LLM.
+Most "agents" today aren't actually AI agents. They're workflows calling an LLM.
 
 **Workflows**: Predetermined paths. You define steps, LLM fills blanks.
 ```
@@ -64,7 +62,7 @@ For our marketing agent, we'll build what's known as a **hybrid approach** :
 mkdir marketing-agent && cd marketing-agent
 npm init -y
 npm install openai dotenv
-npm install -D typescript @types/node tsx
+npm install -D typescript @types/node tsx dotenv
 npx tsc --init
 ```
 
@@ -77,15 +75,14 @@ npx tsc --init
 }
 ```
 
-**Create `.env`:**
+**Create `.env` file at the root of the project to add your API keys:**
 ```bash
 HELICONE_API_KEY=your_key_here  # Get at https://us.helicone.ai/settings/api-key
-GITHUB_TOKEN=your_github_token  # Get at https://github.com/settings/tokens
 ```
 
 ### 2. Send an LLM Request
 
-Create `src/agent.ts`:
+Create `src/index.ts`:
 
 ```typescript
 import OpenAI from "openai";
@@ -101,7 +98,7 @@ const client = new OpenAI({
 // 2. Create a function that analyzes a GitHub repo
 async function analyzeRepo(repoUrl: string) {
   const response = await client.chat.completions.create({
-    model: "gpt-4o-mini", // Fast, cheap, good enough for testing
+    model: "gemma-3-12b-it", // Fast, cheap, good enough for testing
     messages: [
       {
         role: "system",
@@ -117,7 +114,7 @@ async function analyzeRepo(repoUrl: string) {
   return response.choices[0]?.message.content;
 }
 
-// 3. Test it with the Helicone repository
+// 3. Test it with the Helicone repository or add your own repo URL!
 analyzeRepo("https://github.com/helicone/helicone")
   .then(result => console.log(result))
   .catch(err => console.error(err));
@@ -126,7 +123,7 @@ analyzeRepo("https://github.com/helicone/helicone")
 ### 3. Run it
 
 ```bash
-npx tsx src/agent.ts
+npx tsx src/index.ts
 ```
 
 **View logs:** [https://us.helicone.ai/dashboard](https://us.helicone.ai/dashboard)
@@ -137,7 +134,7 @@ npx tsx src/agent.ts
 marketing-agent/
 ├── src/
 │   ├── index.ts           # Entry point
-│   ├── agent.ts           # Main agent loop (perceive → reason → act)
+│   ├── agent.ts           # Main agent loop (think → act → observe)
 │   ├── types.ts           # AgentState interface
 │   ├── github.ts          # fetchRepoContext() - GitHub API
 │   ├── tools.ts           # Tool definitions + executeTool()
