@@ -55,6 +55,14 @@ Today, we'll connect our agent with the GitHub API and start building our agent 
 
 ## Setup
 
+*-- You can clone the repository and checkout to the `day-2` branch to get the working code (we recommend not doing this so you learn by doing):*
+```bash
+git clone https://github.com/juliettech13/ai-engineer-course
+cd ai-engineer-course
+git checkout day-2
+```
+Otherwise, continue with the tutorial building on the previous day's code.
+
 ### Install GitHub Package
 
 ```bash
@@ -66,8 +74,8 @@ npm install @octokit/rest
 Update your `.env`:
 
 ```bash
-HELICONE_API_KEY=your_key_here
-GITHUB_TOKEN=your_github_token
+HELICONE_API_KEY=your_key_here # Get at https://us.helicone.ai/settings/api-key
+GITHUB_TOKEN=your_github_token # Get at https://github.com/settings/tokens
 TARGET_REPO=helicone/helicone  # Format: owner/repo
 ```
 
@@ -86,7 +94,7 @@ export interface AgentState {
   } | null;
   contentType: "changelog" | "feature" | "use-case" | null;
   draft: string | null;
-  step: "perceive" | "reason" | "act" | "done";
+  step: "thought" | "action" | "observation" | "done";
 }
 ```
 
@@ -119,7 +127,7 @@ This function fetches repository context in parallel: README, recent commits, an
 
 ## Step 3: Build the Agent Loop
 
-Replace the contents of `src/agent.ts` with:
+Create an `src/agent.ts` file with the following content:
 
 ```typescript
 import OpenAI from "openai";
@@ -165,7 +173,7 @@ async function executeStep(
 
     case "action":
       const response = await client.chat.completions.create({
-        model: "gpt-4o-mini",
+        model: "gemma-3-12b-it",
         messages: [
           {
             role: "user",
@@ -215,7 +223,7 @@ async function executeStep(
 
 ## Step 4: Create Entry Point
 
-Create `src/index.ts`:
+Replace the contents of `src/index.ts` with the following content:
 
 ```typescript
 import "dotenv/config";
@@ -235,9 +243,9 @@ npx tsx src/index.ts
 **Expected output:**
 
 ```
-Step: perceive
-Step: reason
-Step: act
+Step: thought
+Step: action
+Step: observation
 Step: done
 
 === DRAFT ===

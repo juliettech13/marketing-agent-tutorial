@@ -1,6 +1,6 @@
 # Day 7: Observability & Debugging
 
-Your agent runs in production. Now let's **make it debuggable**.
+Your agent runs in production. Now make it debuggable.
 
 ## The 5 Most Common Agent Failures
 
@@ -40,14 +40,23 @@ Every LLM call goes through the gateway and is automatically tracked. In this tu
 
 ## Step 1: Add Session Tracking
 
-Update `src/agent.ts` to add one tracking header:
+**Sessions** are groupings of related LLM calls. For AI agents, this is critical because:
+- Each agent run involves multiple LLM calls (tool selection, tool execution, final response)
+- You need to see the **complete decision-making flow**, not isolated requests
+- Sessions let you replay and debug the entire agent conversation
+
+Update `src/agent.ts` to add session tracking headers:
 
 ```typescript
+import { randomUUID } from "crypto";
+
 const client = new OpenAI({
   baseURL: "https://ai-gateway.helicone.ai",
   apiKey: process.env.HELICONE_API_KEY,
   defaultHeaders: {
     "Helicone-Session-Id": randomUUID(),
+    "Helicone-Session-Name": "Marketing Agent Run",
+    "Helicone-Session-Path": "/agent/run",
     "Helicone-Property-Repository": process.env.TARGET_REPO || "helicone/helicone",
     "Helicone-Property-Environment": process.env.NODE_ENV || "development"
     // ... anything you want to track!
@@ -55,138 +64,119 @@ const client = new OpenAI({
 });
 ```
 
-That's it. Now all requests are grouped by session and tagged with the repo name.
+Done. All requests are now grouped by session.
 
 ---
 
 ## Step 2: Using the Dashboard
 
-### View a Session
+**View Sessions:** https://helicone.ai/sessions
+- Click any session to see timeline of all LLM calls
+- See tool selections, executions, and results in order
 
-1. Go to https://helicone.ai/sessions
-2. Click any session
-3. See every LLM call in order:
-   - Tool selections
-   - Tool executions
-   - Final generation
+**Filter by Repository:**
+- Go to https://helicone.ai/requests
+- Add Filter → Property: Repository → Enter repo name
 
-### Filter by Repository
-
-1. Go to https://helicone.ai/requests
-2. Click "Add Filter"
-3. Select "Property: Repository"
-4. Enter repo name
-
-### Find Expensive Runs
-
-```
-Filter: Cost > $0.10
-Group by: Session
-```
-
-### Find Failures
-
-```
-Filter: Status >= 400
-```
+**Find Issues:**
+- Expensive runs: `Cost > $0.10` + Group by Session
+- Failures: `Status >= 400`
+- Slow agents: `Session duration > 30s`
 
 ---
 
-## Step 3: Debug a Failed Session
+## Step 3: Debug Patterns
 
-**Example: Agent never completes**
+**Infinite Loop:** Same tool called repeatedly → Improve tool description or add max iterations
 
-1. Find the session in dashboard
-2. See the timeline:
-   ```
-   1. Tool: generate_changelog ✓
-   2. Tool: generate_changelog ✓
-   3. Tool: generate_changelog ✓
-   4. Tool: generate_changelog ✓ (repeating!)
-   ```
-3. Found it: Infinite loop calling same tool
+**Wrong Tools:** Agent skips data gathering → Check prompt explicitly mentions all required steps
 
-**Fix:** Improve tool description or add max iterations
+**Hallucinated Args:** Tool fails with invalid params → Click failed call → View function.arguments
+
+**High Cost:** Session costs $0.50+ → Check token counts, use cheaper model, or add limits
+
+When analyzing sessions, check:
+1. Did agent gather context first?
+2. Are tool calls in logical order?
+3. Is context growing too large?
 
 ---
 
 ## Step 4: Set Up Alerts
 
-In Helicone dashboard:
+Go to Settings → Alerts and create:
 
-1. Go to Settings → Alerts
-2. Create alert: "Cost > $5 per day"
-3. Create alert: "Error rate > 10%"
-4. Get emailed when thresholds hit
-
----
-
-## Common Debug Patterns
-
-### Pattern 1: Tool Not Being Called
-
-**Symptom:** Agent never calls `create_typefully_draft`
-
-**How to find:**
-```
-Filter by session
-See which tools were called
-Notice: Only generate_changelog, never create_typefully_draft
-```
-
-**Fix:** Improve prompt to mention saving to Typefully
-
-### Pattern 2: Hallucinated Arguments
-
-**Symptom:** Tool fails with invalid parameters
-
-**How to find:**
-```
-Click on failed tool call
-View: function.arguments
-See: {"commits": "hello"} (should be array!)
-```
-
-**Fix:** Better tool parameter descriptions
-
-### Pattern 3: High Costs
-
-**Symptom:** Spending too much per run
-
-**How to find:**
-```
-Group sessions by: Cost
-Sort: Descending
-See: Some sessions cost $0.50+ (outliers!)
-```
-
-**Fix:** Add token limits or use cheaper model
+- `Cost > $5 per day` - Control spend
+- `Error rate > 10%` - Catch failures
+- `Session duration > 60s` - Catch slow/stuck agents
+- `Session request count > 20` - Catch infinite loops
 
 ---
 
-## What You've Built
+## Best Practices
 
-A production agent with:
-- ✅ Automatic request logging
-- ✅ Session-based grouping
-- ✅ Repository tagging
-- ✅ Cost tracking
-- ✅ Error monitoring
+**Use Descriptive Session Names:**
 
-All without changing much additional code.
+```typescript
+// ❌ Bad: Generic name
+"Helicone-Session-Name": "Agent Run"
+
+// ✅ Good: Descriptive names
+"Helicone-Session-Name": `Marketing Agent - ${repoName} - ${timestamp}`
+```
+
+**Track Trigger Source:**
+
+```typescript
+"Helicone-Session-Path": "/cron/weekly"        // Scheduled
+"Helicone-Session-Path": "/webhook/pr-opened"  // GitHub trigger
+"Helicone-Session-Path": "/api/manual"         // User initiated
+```
+
+---
+
+## Metrics to Track
+
+| Metric | Target |
+|--------|--------|
+| Avg requests per session | 5-10 |
+| Avg cost per session | < $0.20 |
+| Avg session duration | < 30s |
+| Session success rate | > 95% |
+
+**Red Flags:**
+- 20+ requests per session → Inefficiency or looping
+- Cost increasing week over week → Agent getting worse
+- One tool called 10x more than others → Over-reliance
+
+---
+
+## What You Have
+
+- ✅ Complete session tracking
+- ✅ Timeline view of all LLM calls
+- ✅ Cost and latency monitoring
+- ✅ Real-time alerts
+- ✅ Debugging dashboard
+
+All with just header changes.
 
 ---
 
 ## Resources
 
-- [Helicone Dashboard](https://helicone.ai/dashboard)
-- [Helicone Sessions](https://helicone.ai/sessions)
-- [Custom Properties](https://docs.helicone.ai/features/advanced-usage/custom-properties)
+**Helicone:**
+- [Sessions](https://helicone.ai/sessions)
+- [Dashboard](https://helicone.ai/dashboard)
+- [Docs: Sessions](https://docs.helicone.ai/features/sessions)
+- [Docs: AI Agents](https://docs.helicone.ai/use-cases/ai-agents)
 
 ---
 
-**You're done.** Production agent with observability.
+## Done!
 
-Nicely done!!
+Congratulations! You're now an AI engineer.
 
-~ Jules
+So, what will you build next?
+
+Find us at [@juliettech13](https://x.com/_juliettech) and [@heliconeai](https://x.com/heliconeai).

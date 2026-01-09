@@ -10,6 +10,16 @@ By the end of this tutorial, your agent will:
 - Generate and post content to Typefully
 - Track all LLM requests in Helicone for cost monitoring and debugging
 
+## Setup
+
+*-- You can clone the repository and checkout to the `day-6` branch to get the working code (we recommend not doing this so you learn by doing):*
+```bash
+git clone https://github.com/juliettech13/ai-engineer-course
+cd ai-engineer-course
+git checkout day-6
+```
+Otherwise, continue with the tutorial building on the previous day's code.
+
 ## Step 1: Create Cron Handler
 
 Create `api/cron.ts`:
@@ -99,8 +109,9 @@ const client = new OpenAI({
   apiKey: process.env.HELICONE_API_KEY,
   baseURL: "https://ai-gateway.helicone.ai/v1",
   defaultHeaders: {
-    "Helicone-Auth": `Bearer ${process.env.HELICONE_API_KEY}`,
-    "Helicone-Property-Environment": process.env.NODE_ENV === "production" ? "production" : "development"
+    "Helicone-Property-Environment": process.env.NODE_ENV === "production" ? "production" : "development",
+    "Helicone-Property-SessionId": sessionId,
+    // ... any other properties you'd like to track!
   }
 });
 ```
@@ -108,10 +119,9 @@ const client = new OpenAI({
 **Other useful properties:**
 - `"Helicone-Property-Repo": state.repoName` - Track per repository
 - `"Helicone-Property-ContentType": state.contentType` - Track content types
-- `"Helicone-Property-Version": "2.0"` - Track code versions
-- Anything else you'd like to track: `"Helicone-Property-<your-property>": <your-value>`
+- Anything else you'd like to track: `"Helicone-Property-<your-property>": <your-value>` - you can find all the properties in the [Helicone documentation](https://docs.helicone.ai/features/advanced-usage/custom-properties)
 
-### Filtering in Helicone Dashboard
+### Filtering Your Dashboard
 
 1. Go to https://helicone.ai/dashboard
 2. Click **Requests** tab
@@ -119,7 +129,7 @@ const client = new OpenAI({
 4. Select **Property: Environment**
 5. Choose **production**
 
-Now you'll see only production requests!
+Now you'll see only production requests! You can also filter by other properties like `Repository`, `Content Type`, etc.
 
 ## Step 6: Verify Deployment
 
@@ -230,7 +240,8 @@ In Vercel Dashboard:
 
 - [Vercel Cron Jobs Documentation](https://vercel.com/docs/cron-jobs)
 - [Vercel Serverless Functions](https://vercel.com/docs/functions/serverless-functions)
+- [Helicone Custom Properties Documentation](https://docs.helicone.ai/features/advanced-usage/custom-properties)
+- [Helicone Dashboard](https://us.helicone.ai/dashboard)
 - [Cron Schedule Generator](https://crontab.guru)
-- [Helicone Dashboard](https://helicone.ai/dashboard)
 - [Vercel CLI Documentation](https://vercel.com/docs/cli)
 

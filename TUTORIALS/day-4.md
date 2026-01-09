@@ -1,4 +1,4 @@
-# Day 4: Memory & Conversation History
+# Day 4: Memory
 
 Yesterday we gave the agent tools to execute actions. Today we're adding **memory** so it can remember the state of what has been done.
 
@@ -19,7 +19,17 @@ With memory, your agent:
 
 ## How Memory Works
 
-Memory is just an array of messages you maintain and pass to the LLM:
+Memory can come in a variety of forms:
+
+- **Conversation memory (or episodic memory):** previous interactions with LLM, including prompts, tool calls & results, and final responses tied to events and timestamps.
+- **RAG (Retrieval-Augmented Generation)**: vector databases for retrieving relevant information from a knowledge base.
+- **Semantic memory**: private knowledge bases and the AI's understanding of general facts, concepts, and relationships — independent of specific events.
+- **Short-term (working) memory**: prompt structure, available tools, additional reasoning context, etc.
+- **Long-term memory**: knowledge accumulated and persistent over time.
+
+How your Agent uses memory is entirely up to you! Often, **the best teams will use a combination of these memories to create a more powerful agent.**
+
+For simplicity, today we'll be using **conversation memory** through an array of messages you maintain and pass to the LLM. This is the simplest form of memory and is often sufficient for most basic use cases.
 
 ```
 ┌────────────────────────────────────────────────────────────────┐
@@ -44,7 +54,21 @@ Memory is just an array of messages you maintain and pass to the LLM:
 - `assistant`: LLM's responses and tool selections
 - `tool`: Results from tool executions
 
+## Setup
+
+*-- You can clone the repository and checkout to the `day-4` branch to get the working code (we recommend not doing this so you learn by doing):*
+```bash
+git clone https://github.com/juliettech13/ai-engineer-course
+cd ai-engineer-course
+git checkout day-4
+```
+Otherwise, continue with the tutorial building on the previous day's code.
+
 ## Step 1: Create Memory Class
+
+Tools like [LlamaIndex](https://developers.llamaindex.ai/python/framework/module_guides/deploying/agents/memory/), [LangChain](https://docs.langchain.com/oss/python/concepts/memory), and others often will share their own `Memory` classes.
+
+Instead of using a library, we'll create our own `Memory` class here to show you how it works under the hood.
 
 Create `src/memory.ts`:
 
@@ -87,7 +111,7 @@ export class Memory {
 **getAll():**
 - Returns full message history to pass to the LLM
 
-**Sliding window:**
+**Sliding window strategy:**
 - Keeps first message (system prompt) + last 10 messages
 - Prevents token limit errors on long conversations
 - Feel free to adjust the number `11` threshold based on your needs
@@ -204,7 +228,21 @@ case "action":
 ### What Changed?
 
 **Before:** We manually constructed message arrays for each LLM call
+- Each LLM request required rebuilding context from scratch
+- Tool results were passed without conversation history as context
+- The agent had no awareness of previous interactions
+- We had to explicitly include all relevant info in each prompt repeatedly
+
 **After:** We maintain a single conversation history that grows with each step
+- The LLM sees the full conversation: user requests → tool calls → tool results → responses
+- The agent builds on previous context automatically
+- Tool results stay in memory, so follow-up questions can reference them
+- The agent can make more informed decisions based on what's already happened
+
+**Why This Matters:**
+Without memory, if you made a second LLM call asking "Can you make that shorter?", the agent wouldn't know what "that" refers to.
+
+With memory, it sees the entire conversation and understands you're referring to the draft it just created. This is the difference between a stateless API call and an actual intelligent agent.
 
 ## Step 3: Run It
 

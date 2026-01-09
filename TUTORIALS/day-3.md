@@ -69,6 +69,16 @@ We're creating 3 tools for our marketing agent:
 2. **generate_changelog** - Turn commits into announcements
 3. **create_use_case** - Write practical examples
 
+## Setup
+
+*-- You can clone the repository and checkout to the `day-3` branch to get the working code (we recommend not doing this so you learn by doing):*
+```bash
+git clone https://github.com/juliettech13/ai-engineer-course
+cd ai-engineer-course
+git checkout day-3
+```
+Otherwise, continue with the tutorial building on the previous day's code.
+
 ## Step 1: Define the Tools
 
 Create `src/tools.ts`:
@@ -180,7 +190,7 @@ Now replace the entire `case "action":` block with this tool-calling version:
 case "action":
   // Ask LLM which tool to use
   const response = await client.chat.completions.create({
-    model: "gpt-4o",
+    model: "gemma-3-12b-it",
     messages: [
       {
         role: "system",
@@ -217,7 +227,7 @@ Use the appropriate tool to generate this content.`
 
   // Get final draft using the tool result
   const final = await client.chat.completions.create({
-    model: "gpt-4o",
+    model: "gemini-3-pro-preview", // Use expensive model for final generation
     messages: [
       {
         role: "system",
@@ -379,7 +389,7 @@ Add custom properties to track which tools are most used:
 
 ```typescript
 const response = await client.chat.completions.create({
-  model: "gpt-4o",
+  model: "gemma-3-12b-it",
   messages: [/* ... */],
   tools,
   headers: {
@@ -417,8 +427,8 @@ const response = await client.chat.completions.create({
 
 **High costs from tool calling:**
 - Tool calling requires multiple LLM calls (selection + generation)
-- Use cheaper models for tool selection: `gpt-4o-mini`
-- Use expensive models only for final generation: `gpt-4o`
+- Use cheaper models for tool selection: `gemma-3-12b-it`
+- Use expensive models only for final generation: `gemini-3-pro-preview`
 - Cache tool results when possible
 - Monitor token usage in Helicone dashboard
 
