@@ -35,6 +35,16 @@ Instead of writing custom API wrappers for every service, MCP provides pre-built
 - **Maintenance**: Service providers maintain their own MCP servers, updating versions as needed
 - **Discovery**: LLMs can discover available tools automatically
 
+## Setup
+
+*-- You can clone the repository and checkout to the `day-5` branch to get the working code (we recommend not doing this so you learn by doing):*
+```bash
+git clone https://github.com/juliettech13/ai-engineer-course
+cd ai-engineer-course
+git checkout day-5
+```
+Otherwise, continue with the tutorial building on the previous day's code.
+
 ## Step 1: Install Dependencies
 
 ```bash
@@ -63,7 +73,7 @@ TYPEFULLY_SOCIAL_SET_ID=your_social_set_id_here
 This is your account identifier. To find it:
 
 1. In your account settings, select "Development Mode"
-2. Go to your avatar icon on the top right corner and copy your account ID
+2. Go to your avatar icon on the top left corner and copy your account ID
 
 ## Step 3: Create MCP Client
 
@@ -132,7 +142,7 @@ export const tools: ChatCompletionTool[] = [
   {
     type: "function",
     function: {
-      name: "create_typefully_draft",
+      name: "typefully_create_draft",
       description: "Save content as Typefully draft",
       parameters: {
         type: "object",
@@ -152,7 +162,7 @@ Now add the tool execution logic in the `executeTool()` function:
 export async function executeTool(name: string, args: any) {
   // ... existing tool handlers
 
-  if (name === "create_typefully_draft") {
+  if (name === "typefully_create_draft") {
     try {
       const mcp = await getTypefullyMCP();
 
@@ -164,7 +174,7 @@ export async function executeTool(name: string, args: any) {
 
       // Create draft with proper structure
       const result = await mcp.callTool({
-        name: "typefully_drafts_create_draft",
+        name: "typefully_create_draft",
         arguments: {
           social_set_id: socialSetId,
           requestBody: {
@@ -218,7 +228,7 @@ export async function executeTool(name: string, args: any) {
 
 The agent now needs to handle **multiple tool calls** in sequence. The LLM might:
 1. First call `generate_changelog` to create content
-2. Then call `create_typefully_draft` to save it
+2. Then call `typefully_create_draft` to save it
 
 Open `src/agent.ts` and update the `case "action":` block:
 
@@ -302,7 +312,7 @@ Here's what happens in the new multi-tool flow:
 │                                                                │
 │  ITERATION 2:                                                  │
 │  LLM sees changelog in memory                                  │
-│  LLM → calls create_typefully_draft(formatted_content)         │
+│  LLM → calls typefully_create_draft(formatted_content)         │
 │  Agent → executes tool via MCP                                 │
 │  MCP → posts to Typefully API                                  │
 │  Tool → returns "✓ Draft saved to Typefully"                   │
@@ -336,7 +346,7 @@ npx tsx src/index.ts
 Step: thought
 Step: action
 → Calling generate_changelog
-→ Calling create_typefully_draft
+→ Calling typefully_create_draft
 Typefully MCP Result: {
   "content": [
     {
@@ -412,7 +422,7 @@ Check your drafts at https://typefully.com/drafts
 MCP servers can fail (network issues, auth problems, rate limits). Always wrap calls:
 
 ```typescript
-if (name === "create_typefully_draft") {
+if (name === "typefully_create_draft") {
   try {
     const mcp = await getTypefullyMCP();
     const result = await mcp.callTool({...});
@@ -457,7 +467,7 @@ Typefully supports multiple platforms (X, LinkedIn, Threads). Extend the tool:
 {
   type: "function",
   function: {
-    name: "create_typefully_draft",
+    name: "typefully_create_draft",
     description: "Save content as Typefully draft for social platforms",
     parameters: {
       type: "object",
